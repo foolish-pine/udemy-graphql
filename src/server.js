@@ -2,32 +2,28 @@ const { ApolloServer, gql } = require("apollo-server");
 const fs = require("fs");
 const path = require("path");
 
-// HackerNesの1つ1つの投稿
-const links = [
-  {
-    id: "link-0",
-    description: "descriptionテスト",
-    url: "google.com",
-  },
-];
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 
 // リゾルバ関数
 const resolvers = {
   Query: {
     info: () => "HackerNewsクローン",
-    feed: () => links,
+    feed: async (parent, args, context) => {
+      return context.prisma.link.findMany();
+    },
   },
   Mutation: {
-    post: (parent, args) => {
-      const id = links.length + 1;
-      const link = {
-        id: `link-${id}`,
-        description: args.description,
-        url: args.url,
-      };
+    post: (parent, args, context) => {
+      const newLink = context.prisma.link.create({
+        data: {
+          description: args.description,
+          url: args.url,
+        },
+      });
 
-      links.push(link);
-      return link;
+      return newLink;
     },
   },
 };
@@ -35,6 +31,9 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs: fs.readFileSync(path.join(__dirname, "schema.graphql"), "utf-8"),
   resolvers,
+  context: {
+    prisma,
+  },
   csrfPrevention: true,
 });
 
