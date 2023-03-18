@@ -13,7 +13,7 @@ type Link {
   id: ID!
   description: String!
   url: String!
-  postedBy: User.id
+  postedBy: User
 }
 
 type AuthPayload {

@@ -1,29 +1,26 @@
-import { sign } from "jsonwebtoken";
+const { verify } = require("jsonwebtoken");
 require("dotenv").config();
 
 function getTokenPayload(token) {
-  return sign.verify(token, process.env.APP_SECRET);
+  return verify(token, process.env.APP_SECRET);
 }
 
 function getUserId(req, authToken) {
   if (req) {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.replace("Bearer", "");
+    const token = req.headers.authorization;
 
-      if (!token) {
-        throw new Error("トークンが見つかりませんでした");
-      }
-
-      const { userId } = getTokenPayload(token);
-      return userId;
+    if (!token) {
+      throw new Error("トークンが見つかりませんでした");
     }
-  } else if (authToken) {
+
     const { userId } = getTokenPayload(token);
     return userId;
-  } else {
-    throw new Error("認証権限がありません");
+  } else if (authToken) {
+    const { userId } = getTokenPayload(authToken);
+    return userId;
   }
+
+  throw new Error("認証権限がありません");
 }
 
 module.exports = {
