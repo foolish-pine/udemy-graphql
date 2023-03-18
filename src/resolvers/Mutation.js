@@ -1,7 +1,6 @@
 import { hash } from "bcryptjs";
 import { sign } from "jsonwebtoken";
-
-const APP_SECRET = "Graphql";
+require("dotenv").config();
 
 async function signUp(parent, args, context) {
   const password = hash(args.password, 10);
@@ -13,7 +12,7 @@ async function signUp(parent, args, context) {
 
   const token = sign({
     userId: user.id,
-    APP_SECRET,
+    APP_SECRET: process.env.APP_SECRET,
   });
 
   return { token, user };
@@ -40,4 +39,14 @@ async function login(parent, args, context) {
   });
 
   return { token, user };
+}
+
+async function post(parent, args, context) {
+  return await context.prisma.link.create({
+    data: {
+      url: args.url,
+      description: args.description,
+      postedBy: userId,
+    },
+  });
 }
